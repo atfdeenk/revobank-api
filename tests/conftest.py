@@ -54,7 +54,7 @@ def init_database(app):
         db.session.commit()
 
         # Create sample transactions
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(datetime.UTC)
         transactions = [
             Transaction(
                 reference_number=f'TRX{int(timestamp.timestamp())}001',
@@ -62,7 +62,7 @@ def init_database(app):
                 type='deposit',
                 status='completed',
                 description='Initial deposit',
-                account_id=accounts[0].id,
+                account_id=accounts[0].id,  # Use savings account
                 timestamp=timestamp
             ),
             Transaction(
@@ -71,8 +71,8 @@ def init_database(app):
                 type='transfer',
                 status='completed',
                 description='Test transfer',
-                account_id=accounts[0].id,
-                recipient_account_id=accounts[1].id,
+                account_id=accounts[0].id,  # Transfer from savings
+                recipient_account_id=accounts[1].id,  # To checking
                 timestamp=timestamp
             )
         ]
