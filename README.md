@@ -5,6 +5,7 @@ A secure and robust RESTful banking API that enables account management, transac
 ## Overview
 
 RevoBank API is designed to handle core banking operations with a focus on:
+
 - Secure user authentication and authorization
 - Multiple account types with different requirements
 - Safe transaction processing with ACID properties
@@ -14,6 +15,7 @@ RevoBank API is designed to handle core banking operations with a focus on:
 ## Features
 
 ### Account Management
+
 - Support for multiple account types with prefixes:
   - Savings (38): 100,000 IDR minimum balance
   - Checking (39): 500,000 IDR minimum balance
@@ -23,7 +25,9 @@ RevoBank API is designed to handle core banking operations with a focus on:
 - Detailed account history with filtering
 
 ### Transaction System
+
 1. **Deposits**
+
    - Endpoint: `POST /transactions/deposit`
    - Account ownership and status validation
    - Atomic balance updates with rollback safety
@@ -31,6 +35,7 @@ RevoBank API is designed to handle core banking operations with a focus on:
    - Transaction status tracking (completed, pending, failed)
 
 2. **Withdrawals**
+
    - Endpoint: `POST /transactions/withdraw`
    - Minimum balance enforcement per account type
    - Overdraft prevention with detailed error messages
@@ -45,12 +50,14 @@ RevoBank API is designed to handle core banking operations with a focus on:
    - Detailed transaction history for both accounts
 
 ### Security Features
+
 - JWT-based authentication
 - Account ownership validation
 - Transaction rollbacks for failed operations
 - Secure password handling
 
 ### Data Management
+
 - Bidirectional account-transaction relationships:
   - Account → Source transactions (outgoing via foreign_key='Transaction.account_id')
   - Account → Received transactions (incoming via foreign_key='Transaction.recipient_account_id')
@@ -82,18 +89,21 @@ RevoBank API is designed to handle core banking operations with a focus on:
 ## Getting Started
 
 ### Prerequisites
+
 - Python 3.11
 - Virtual environment tool (uv recommended)
 
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/atfdeenk/revobank-api.git
    cd revobank-api
    ```
 
 2. Create and activate virtual environment:
+
    ```bash
    uv venv -p 3.11
    source .venv/bin/activate
@@ -107,6 +117,7 @@ RevoBank API is designed to handle core banking operations with a focus on:
 ### Configuration
 
 Set up your environment variables in `.env`:
+
 ```env
 FLASK_APP=run.py
 FLASK_ENV=development
@@ -117,6 +128,7 @@ JWT_SECRET_KEY=your_jwt_secret
 ### Running Tests
 
 Run the test suite:
+
 ```bash
 python -m pytest tests/ -v
 ```
@@ -126,6 +138,7 @@ python -m pytest tests/ -v
 ### Authentication
 
 #### Register User
+
 ```http
 POST /users
 Content-Type: application/json
@@ -150,6 +163,7 @@ Response (201 Created):
 ```
 
 #### Login
+
 ```http
 POST /users/login
 Content-Type: application/json
@@ -169,6 +183,7 @@ Response (200 OK):
 ### Account Operations
 
 #### Create Account
+
 ```http
 POST /accounts
 Authorization: Bearer <token>
@@ -193,6 +208,7 @@ Response (201 Created):
 ```
 
 #### List Accounts
+
 ```http
 GET /accounts
 Authorization: Bearer <token>
@@ -214,6 +230,7 @@ Response (200 OK):
 ### Transaction Operations
 
 #### Deposit
+
 ```http
 POST /transactions/deposit
 Authorization: Bearer <token>
@@ -237,6 +254,7 @@ Response (200 OK):
 ```
 
 #### Withdraw
+
 ```http
 POST /transactions/withdraw
 Authorization: Bearer <token>
@@ -260,6 +278,7 @@ Response (200 OK):
 ```
 
 #### Transfer
+
 ```http
 POST /transactions/transfer
 Authorization: Bearer <token>
@@ -290,6 +309,7 @@ Response (201 Created):
 ```
 
 #### Transaction History
+
 ```http
 GET /transactions?account_id=1
 Authorization: Bearer <token>
@@ -326,6 +346,7 @@ For detailed flow diagrams, see the [docs/diagrams](docs/diagrams) directory.
 ## Database Schema
 
 ### Account Model
+
 - Relationships:
   - `transactions`: Outgoing transactions (foreign_key='Transaction.account_id')
   - `received_transactions`: Incoming transactions (foreign_key='Transaction.recipient_account_id')
@@ -337,6 +358,7 @@ For detailed flow diagrams, see the [docs/diagrams](docs/diagrams) directory.
   - `status` (active/inactive/closed)
 
 ### Transaction Model
+
 - Relationships:
   - `source_account`: Source account (required)
   - `recipient_account`: Recipient account (for transfers)
