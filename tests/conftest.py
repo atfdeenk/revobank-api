@@ -54,7 +54,7 @@ def init_database(app):
         db.session.commit()
 
         # Create sample transactions
-        timestamp = datetime.now(datetime.UTC)
+        timestamp = datetime.utcnow()
         transactions = [
             Transaction(
                 reference_number=f'TRX{int(timestamp.timestamp())}001',
