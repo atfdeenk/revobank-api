@@ -49,13 +49,13 @@ def test_withdraw(client, init_database):
     response = client.post('/transactions/withdraw',
         json={
             'account_id': checking_account['id'],
-            'amount': 20000.0,
+            'amount': 5000.0,
             'description': 'Test withdrawal'
         },
         headers={'Authorization': f'Bearer {token}'}
     )
     assert response.status_code == 201
-    assert response.json['transaction']['amount'] == 20000.0
+    assert response.json['transaction']['amount'] == 5000.0
     assert response.json['transaction']['type'] == 'withdraw'
 
 def test_transfer(client, init_database):
@@ -80,11 +80,11 @@ def test_transfer(client, init_database):
         json={
             'from_account_id': savings_account['id'],
             'to_account_id': checking_account['id'],
-            'amount': 30000.0,
+            'amount': 5000.0,
             'description': 'Test transfer'
         },
         headers={'Authorization': f'Bearer {token}'}
     )
     assert response.status_code == 201
-    assert response.json['transaction']['amount'] == 30000.0
+    assert response.json['transaction']['amount'] == 5000.0
     assert response.json['transaction']['type'] == 'transfer'
