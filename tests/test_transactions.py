@@ -78,8 +78,8 @@ def test_transfer(client, init_database):
     # Make transfer from savings to checking
     response = client.post('/transactions/transfer',
         json={
-            'source_account_id': savings_account['id'],
-            'recipient_account_id': checking_account['id'],
+            'from_account_id': savings_account['id'],
+            'to_account_id': checking_account['id'],
             'amount': 30000.0,
             'description': 'Test transfer'
         },
