@@ -11,10 +11,16 @@ def test_deposit(client, init_database):
     assert login_response.status_code == 200
     token = login_response.json['token']
 
+    # Get savings account for deposit
+    accounts_response = client.get('/accounts', headers={'Authorization': f'Bearer {token}'})
+    assert accounts_response.status_code == 200
+    savings_account = next(acc for acc in accounts_response.json['accounts'] 
+                         if acc['account_number'].startswith('38'))
+
     # Make deposit
     response = client.post('/transactions/deposit', 
         json={
-            'account_id': 1,
+            'account_id': savings_account['id'],
             'amount': 50000.0,
             'description': 'Test deposit'
         },
@@ -33,10 +39,16 @@ def test_withdraw(client, init_database):
     assert login_response.status_code == 200
     token = login_response.json['token']
 
+    # Get checking account for withdrawal
+    accounts_response = client.get('/accounts', headers={'Authorization': f'Bearer {token}'})
+    assert accounts_response.status_code == 200
+    checking_account = next(acc for acc in accounts_response.json['accounts'] 
+                          if acc['account_number'].startswith('39'))
+
     # Make withdrawal
     response = client.post('/transactions/withdraw',
         json={
-            'account_id': 1,
+            'account_id': checking_account['id'],
             'amount': 20000.0,
             'description': 'Test withdrawal'
         },
@@ -44,7 +56,7 @@ def test_withdraw(client, init_database):
     )
     assert response.status_code == 201
     assert response.json['transaction']['amount'] == 20000.0
-    assert response.json['transaction']['type'] == 'withdrawal'
+    assert response.json['transaction']['type'] == 'withdraw'
 
 def test_transfer(client, init_database):
     # Login first
@@ -55,22 +67,19 @@ def test_transfer(client, init_database):
     assert login_response.status_code == 200
     token = login_response.json['token']
 
-    # Create second account for transfer
-    response = client.post('/accounts',
-        json={
-            'account_type': 'savings',
-            'initial_deposit': 100000.0
-        },
-        headers={'Authorization': f'Bearer {token}'}
-    )
-    assert response.status_code == 201
-    recipient_account_id = response.json['account']['id']
+    # Get both accounts for transfer
+    accounts_response = client.get('/accounts', headers={'Authorization': f'Bearer {token}'})
+    assert accounts_response.status_code == 200
+    savings_account = next(acc for acc in accounts_response.json['accounts'] 
+                         if acc['account_number'].startswith('38'))
+    checking_account = next(acc for acc in accounts_response.json['accounts'] 
+                          if acc['account_number'].startswith('39'))
 
-    # Make transfer
+    # Make transfer from savings to checking
     response = client.post('/transactions/transfer',
         json={
-            'source_account_id': 1,
-            'recipient_account_id': recipient_account_id,
+            'source_account_id': savings_account['id'],
+            'recipient_account_id': checking_account['id'],
             'amount': 30000.0,
             'description': 'Test transfer'
         },
