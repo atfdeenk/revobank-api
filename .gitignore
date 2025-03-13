@@ -11,6 +11,10 @@ __pycache__/
 venv/
 ENV/
 
+# uv
+.uv/
+.uvenv/
+
 # Flask
 instance/
 .webassets-cache
@@ -25,3 +29,12 @@ instance/
 
 # Logs
 *.log
+
+# Coverage
+.coverage
+htmlcov/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
