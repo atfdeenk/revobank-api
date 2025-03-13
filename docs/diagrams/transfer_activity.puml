@@ -1,0 +1,58 @@
+@startuml Transfer Activity
+
+|Client|
+start
+:Submit transfer request with
+from_account_id, to_account_id,
+and amount;
+
+|Authentication|
+:Validate JWT token;
+if (Token valid?) then (yes)
+else (no)
+  :Return 401 Unauthorized;
+  stop
+endif
+
+|Transaction Service|
+:Validate source account ownership;
+if (Source account belongs to user?) then (yes)
+  :Validate source account status;
+  if (Source account active?) then (yes)
+    :Validate recipient account exists;
+    if (Recipient account exists?) then (yes)
+      :Check minimum balance requirement
+      after transfer;
+      if (Sufficient balance?) then (yes)
+        :Generate unique reference number
+        (TRX + timestamp + random);
+        :Begin database transaction;
+        :Update source account balance;
+        :Update recipient account balance;
+        :Create source transaction record;
+        :Create recipient transaction record;
+        :Commit transaction;
+        :Return success response with
+        transaction details;
+      else (no)
+        :Return 400 Bad Request
+        (Insufficient funds);
+      endif
+    else (no)
+      :Return 404 Not Found
+      (Recipient not found);
+    endif
+  else (no)
+    :Return 400 Bad Request
+    (Account inactive);
+  endif
+else (no)
+  :Return 403 Forbidden;
+endif
+
+|Client|
+:Receive response;
+
+stop
+
+@enduml

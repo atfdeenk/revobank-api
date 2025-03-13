@@ -1,0 +1,49 @@
+@startuml Withdrawal Activity
+
+|Client|
+start
+:Submit withdrawal request with
+account_id and amount;
+
+|Authentication|
+:Validate JWT token;
+if (Token valid?) then (yes)
+else (no)
+  :Return 401 Unauthorized;
+  stop
+endif
+
+|Transaction Service|
+:Validate account ownership;
+if (Account belongs to user?) then (yes)
+  :Validate account status;
+  if (Account active?) then (yes)
+    :Check minimum balance requirement
+    (500k for checking, 100k for savings);
+    if (Sufficient balance?) then (yes)
+      :Generate unique reference number
+      (TRX + timestamp + random);
+      :Begin database transaction;
+      :Update account balance;
+      :Create transaction record;
+      :Commit transaction;
+      :Return success response with
+      transaction details;
+    else (no)
+      :Return 400 Bad Request
+      (Insufficient funds);
+    endif
+  else (no)
+    :Return 400 Bad Request
+    (Account inactive);
+  endif
+else (no)
+  :Return 403 Forbidden;
+endif
+
+|Client|
+:Receive response;
+
+stop
+
+@enduml
