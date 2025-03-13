@@ -34,50 +34,54 @@ def init_database(app):
         db.session.commit()
 
         # Create test accounts with different types
-        accounts = [
-            Account(
-                account_type='savings',
-                account_number='38' + '0' * 14,  # Savings prefix
-                balance=100000.0,
-                user_id=user.id,
-                status='active'
-            ),
-            Account(
-                account_type='checking',
-                account_number='39' + '0' * 14,  # Checking prefix
-                balance=500000.0,
-                user_id=user.id,
-                status='active'
-            )
-        ]
-        db.session.bulk_save_objects(accounts)
+        savings_account = Account(
+            account_type='savings',
+            account_number='38' + '0' * 14,  # Savings prefix
+            balance=100000.0,
+            user_id=user.id,
+            status='active'
+        )
+        checking_account = Account(
+            account_type='checking',
+            account_number='39' + '0' * 14,  # Checking prefix
+            balance=500000.0,
+            user_id=user.id,
+            status='active'
+        )
+        db.session.add(savings_account)
+        db.session.add(checking_account)
         db.session.commit()
 
-        # Create sample transactions
+        # Create sample transactions with proper relationships
         timestamp = datetime.utcnow()
-        transactions = [
-            Transaction(
-                reference_number=f'TRX{int(timestamp.timestamp())}001',
-                amount=50000.0,
-                type='deposit',
-                status='completed',
-                description='Initial deposit',
-                account_id=accounts[0].id,  # Use savings account
-                timestamp=timestamp
-            ),
-            Transaction(
-                reference_number=f'TRX{int(timestamp.timestamp())}002',
-                amount=20000.0,
-                type='transfer',
-                status='completed',
-                description='Test transfer',
-                account_id=accounts[0].id,  # Transfer from savings
-                recipient_account_id=accounts[1].id,  # To checking
-                timestamp=timestamp
-            )
-        ]
-        db.session.bulk_save_objects(transactions)
+        
+        # Initial deposit to savings account
+        deposit = Transaction(
+            reference_number=f'TRX{int(timestamp.timestamp())}001',
+            amount=50000.0,
+            type='deposit',
+            status='completed',
+            description='Initial deposit',
+            account_id=savings_account.id,
+            timestamp=timestamp
+        )
+        db.session.add(deposit)
         db.session.commit()
+        
+        # Transfer from savings to checking
+        transfer = Transaction(
+            reference_number=f'TRX{int(timestamp.timestamp())}002',
+            amount=20000.0,
+            type='transfer',
+            status='completed',
+            description='Test transfer',
+            account_id=savings_account.id,
+            recipient_account_id=checking_account.id,
+            timestamp=timestamp
+        )
+        db.session.add(transfer)
+        db.session.commit()
+
 
         yield db  # this is where the testing happens
 
