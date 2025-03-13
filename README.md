@@ -1,6 +1,15 @@
 # RevoBank API
 
-A secure and robust banking API built with Flask and SQLAlchemy, featuring comprehensive transaction management, account relationships, and JWT authentication.
+A secure and robust RESTful banking API that enables account management, transactions, and user operations with comprehensive security features. Built with Flask and SQLAlchemy, it provides a reliable platform for banking operations with proper transaction management and data integrity.
+
+## Overview
+
+RevoBank API is designed to handle core banking operations with a focus on:
+- Secure user authentication and authorization
+- Multiple account types with different requirements
+- Safe transaction processing with ACID properties
+- Comprehensive activity tracking and history
+- Rich API documentation and testing
 
 ## Features
 
@@ -15,21 +24,24 @@ A secure and robust banking API built with Flask and SQLAlchemy, featuring compr
 ### Transaction System
 1. **Deposits**
    - Endpoint: `POST /transactions/deposit`
-   - Account validation
-   - Atomic balance updates
-   - Transaction receipt generation
+   - Account ownership and status validation
+   - Atomic balance updates with rollback safety
+   - Unique reference number generation (TRX{YYYYMMDD}{8_random_chars})
+   - Transaction status tracking (completed, pending, failed)
 
 2. **Withdrawals**
    - Endpoint: `POST /transactions/withdraw`
-   - Minimum balance enforcement
-   - Overdraft prevention
-   - Account status validation
+   - Minimum balance enforcement per account type
+   - Overdraft prevention with detailed error messages
+   - Account status validation (active accounts only)
+   - Balance verification before transaction
 
 3. **Transfers**
    - Endpoint: `POST /transactions/transfer`
-   - Inter-account transfers
-   - Source and recipient validation
-   - Atomic balance updates for both accounts
+   - Inter-account transfers with bidirectional tracking
+   - Source and recipient account validation
+   - Atomic balance updates with transaction safety
+   - Detailed transaction history for both accounts
 
 ### Security Features
 - JWT-based authentication
@@ -38,10 +50,22 @@ A secure and robust banking API built with Flask and SQLAlchemy, featuring compr
 - Secure password handling
 
 ### Data Management
-- Bidirectional account-transaction relationships
-- Rich transaction history with filtering
-- Unique reference numbers (TRX + timestamp + random)
-- Comprehensive error handling
+- Bidirectional account-transaction relationships:
+  - Account → Source transactions (outgoing)
+  - Account → Received transactions (incoming)
+  - Transaction → Source account
+  - Transaction → Recipient account (for transfers)
+- Rich transaction history with filtering:
+  - By account ID
+  - By transaction type
+  - By date range
+  - By status
+- Unique reference numbers: TRX{YYYYMMDD}{8_random_chars}
+- Transaction status tracking:
+  - completed: Successfully processed
+  - pending: In progress
+  - failed: Transaction failed
+- Comprehensive error handling with detailed messages
 
 ## Technical Stack
 
@@ -96,24 +120,201 @@ python -m pytest tests/ -v
 ## API Documentation
 
 ### Authentication
+
+#### Register User
 ```http
-POST /auth/register
-POST /auth/login
+POST /users
+Content-Type: application/json
+
+{
+    "username": "johndoe",
+    "password": "securepass123",
+    "email": "john@example.com",
+    "name": "John Doe"
+}
+
+Response (201 Created):
+{
+    "message": "User registered successfully",
+    "user": {
+        "id": 1,
+        "username": "johndoe",
+        "email": "john@example.com",
+        "name": "John Doe"
+    }
+}
+```
+
+#### Login
+```http
+POST /users/login
+Content-Type: application/json
+
+{
+    "username": "johndoe",
+    "password": "securepass123"
+}
+
+Response (200 OK):
+{
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "token_type": "bearer"
+}
 ```
 
 ### Account Operations
+
+#### Create Account
 ```http
-POST /accounts/create
-GET /accounts/list
-GET /accounts/<id>
+POST /accounts
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+    "account_type": "savings",
+    "initial_deposit": 100000.0
+}
+
+Response (201 Created):
+{
+    "message": "Account created successfully",
+    "account": {
+        "id": 1,
+        "account_number": "1234567890",
+        "type": "savings",
+        "balance": 100000.0,
+        "minimum_balance": 100000.0
+    }
+}
+```
+
+#### List Accounts
+```http
+GET /accounts
+Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "accounts": [
+        {
+            "id": 1,
+            "account_number": "1234567890",
+            "type": "savings",
+            "balance": 100000.0,
+            "minimum_balance": 100000.0
+        }
+    ]
+}
 ```
 
 ### Transaction Operations
+
+#### Deposit
 ```http
 POST /transactions/deposit
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+    "account_id": 1,
+    "amount": 50000.0
+}
+
+Response (200 OK):
+{
+    "message": "Deposit successful",
+    "transaction": {
+        "id": "TRX202503140001",
+        "type": "deposit",
+        "amount": 50000.0,
+        "balance": 150000.0
+    }
+}
+```
+
+#### Withdraw
+```http
 POST /transactions/withdraw
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+    "account_id": 1,
+    "amount": 25000.0
+}
+
+Response (200 OK):
+{
+    "message": "Withdrawal successful",
+    "transaction": {
+        "id": "TRX202503140002",
+        "type": "withdraw",
+        "amount": 25000.0,
+        "balance": 125000.0
+    }
+}
+```
+
+#### Transfer
+```http
 POST /transactions/transfer
-GET /transactions/history
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+    "from_account_id": 1,
+    "to_account_id": 2,
+    "amount": 30000.0,
+    "description": "Transfer to account 1234567890"
+}
+
+Response (201 Created):
+{
+    "message": "Transfer successful",
+    "transaction": {
+        "id": 3,
+        "reference_number": "TRX202503140003",
+        "type": "transfer",
+        "amount": 30000.0,
+        "description": "Transfer to account 1234567890",
+        "account_id": 1,
+        "recipient_account_id": 2,
+        "status": "completed",
+        "timestamp": "2025-03-14T04:40:00Z"
+    }
+}
+```
+
+#### Transaction History
+```http
+GET /transactions?account_id=1
+Authorization: Bearer <token>
+
+Response (200 OK):
+{
+    "transactions": [
+        {
+            "id": 1,
+            "reference_number": "TRX202503140001",
+            "type": "deposit",
+            "amount": 50000.0,
+            "description": "Deposit",
+            "account_id": 1,
+            "recipient_account_id": null,
+            "timestamp": "2025-03-14T04:30:00Z"
+        },
+        {
+            "id": 2,
+            "reference_number": "TRX202503140002",
+            "type": "withdraw",
+            "amount": 25000.0,
+            "description": "Withdrawal",
+            "account_id": 1,
+            "recipient_account_id": null,
+            "timestamp": "2025-03-14T04:35:00Z"
+        }
+    ]
+}
 ```
 
 For detailed flow diagrams, see the [docs/diagrams](docs/diagrams) directory.
