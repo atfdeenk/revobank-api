@@ -6,9 +6,15 @@ from config import Config
 db = SQLAlchemy()
 jwt = JWTManager()
 
-def create_app():
+def create_app(config_name='default'):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    
+    if config_name == 'testing':
+        app.config['TESTING'] = True
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        app.config['JWT_SECRET_KEY'] = 'test-key'
+    else:
+        app.config.from_object(Config)
     
     db.init_app(app)
     jwt.init_app(app)
