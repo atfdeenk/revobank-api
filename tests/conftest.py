@@ -63,7 +63,7 @@ def init_database(app):
                 status='completed',
                 description='Initial deposit',
                 account_id=accounts[0].id,
-                created_at=timestamp
+                timestamp=timestamp
             ),
             Transaction(
                 reference_number=f'TRX{int(timestamp.timestamp())}002',
@@ -73,7 +73,7 @@ def init_database(app):
                 description='Test transfer',
                 account_id=accounts[0].id,
                 recipient_account_id=accounts[1].id,
-                created_at=timestamp
+                timestamp=timestamp
             )
         ]
         db.session.bulk_save_objects(transactions)
