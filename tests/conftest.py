@@ -37,14 +37,14 @@ def init_database(app):
         savings_account = Account(
             account_type='savings',
             account_number='38' + '0' * 14,  # Savings prefix
-            balance=100000.0,
+            balance=1000000.0,  # Well above 100k minimum
             user_id=user.id,
             status='active'
         )
         checking_account = Account(
             account_type='checking',
             account_number='39' + '0' * 14,  # Checking prefix
-            balance=500000.0,
+            balance=2000000.0,  # Well above 500k minimum
             user_id=user.id,
             status='active'
         )
