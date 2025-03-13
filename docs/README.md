@@ -6,21 +6,28 @@ The `diagrams` folder contains PlantUML activity diagrams that illustrate the ma
 
 1. `deposit_activity.puml`: Shows the deposit flow
    - JWT authentication
-   - Account validation
-   - Balance update
-   - Transaction recording
+   - Account ownership and status validation
+   - Atomic balance updates with rollback safety
+   - Unique reference number generation (TRX{YYYYMMDD}{8_random_chars})
+   - Transaction status tracking (completed, pending, failed)
 
 2. `withdrawal_activity.puml`: Shows the withdrawal flow
    - JWT authentication
-   - Account validation
-   - Minimum balance checks (500k for checking, 100k for savings)
-   - Transaction recording
+   - Account ownership and status validation
+   - Minimum balance enforcement per account type:
+     - Checking: 500,000 IDR (prefix: 39)
+     - Savings: 100,000 IDR (prefix: 38)
+     - Business: 1,000,000 IDR (prefix: 37)
+     - Student: 10,000 IDR (prefix: 36)
+   - Overdraft prevention with detailed error messages
 
 3. `transfer_activity.puml`: Shows the transfer flow
    - JWT authentication
    - Source and recipient account validation
-   - Balance checks
-   - Atomic transaction updates
+   - Balance checks with minimum balance enforcement
+   - Atomic transaction updates with bidirectional tracking
+   - Transaction history for both accounts
+   - Rich filtering options (by type, date, status)
 
 ### Viewing the Diagrams
 
@@ -42,9 +49,13 @@ To view these diagrams, you need a PlantUML viewer. You can:
    - Balance updates
 
 3. Transaction Safety
-   - Atomic operations
-   - Unique reference numbers
-   - Transaction records for both parties in transfers
+   - Atomic operations with database transaction rollbacks
+   - Unique reference numbers (TRX{YYYYMMDD}{8_random_chars})
+   - Bidirectional transaction relationships:
+     - Account → Source transactions (outgoing)
+     - Account → Received transactions (incoming)
+     - Transaction → Source account
+     - Transaction → Recipient account (for transfers)
 
 4. Error Handling
    - Invalid authentication

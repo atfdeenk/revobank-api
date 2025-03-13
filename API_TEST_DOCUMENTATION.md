@@ -88,18 +88,22 @@ GET /accounts/types
   {
     "account_types": {
       "savings": {
+        "prefix": "38",
         "minimum_balance": 100000.0,
         "description": "Basic savings account with standard interest rate"
       },
       "checking": {
+        "prefix": "39",
         "minimum_balance": 500000.0,
         "description": "Everyday checking account for regular transactions"
       },
       "business": {
+        "prefix": "37",
         "minimum_balance": 1000000.0,
         "description": "Business account with higher transaction limits"
       },
       "student": {
+        "prefix": "36",
         "minimum_balance": 10000.0,
         "description": "Student account with no monthly fees"
       }

@@ -14,12 +14,13 @@ RevoBank API is designed to handle core banking operations with a focus on:
 ## Features
 
 ### Account Management
-- Support for multiple account types (Checking, Savings)
-- Minimum balance requirements:
-  - Checking accounts: 500,000
-  - Savings accounts: 100,000
-- Account status tracking
-- Detailed account history
+- Support for multiple account types with prefixes:
+  - Savings (38): 100,000 IDR minimum balance
+  - Checking (39): 500,000 IDR minimum balance
+  - Business (37): 1,000,000 IDR minimum balance
+  - Student (36): 10,000 IDR minimum balance
+- Account status tracking (active, inactive, closed)
+- Detailed account history with filtering
 
 ### Transaction System
 1. **Deposits**
@@ -51,21 +52,24 @@ RevoBank API is designed to handle core banking operations with a focus on:
 
 ### Data Management
 - Bidirectional account-transaction relationships:
-  - Account → Source transactions (outgoing)
-  - Account → Received transactions (incoming)
-  - Transaction → Source account
+  - Account → Source transactions (outgoing via foreign_key='Transaction.account_id')
+  - Account → Received transactions (incoming via foreign_key='Transaction.recipient_account_id')
+  - Transaction → Source account (for all transaction types)
   - Transaction → Recipient account (for transfers)
 - Rich transaction history with filtering:
-  - By account ID
-  - By transaction type
-  - By date range
-  - By status
+  - By account ID (sent and received transactions)
+  - By transaction type (deposit, withdraw, transfer)
+  - By date range (ISO format dates)
+  - By status (completed, pending, failed)
 - Unique reference numbers: TRX{YYYYMMDD}{8_random_chars}
 - Transaction status tracking:
   - completed: Successfully processed
   - pending: In progress
-  - failed: Transaction failed
-- Comprehensive error handling with detailed messages
+  - failed: Transaction failed with rollback
+- Comprehensive error handling:
+  - Insufficient funds with current and minimum balance
+  - Account ownership and status validation
+  - Transaction validation and constraints
 
 ## Technical Stack
 
@@ -180,7 +184,7 @@ Response (201 Created):
     "message": "Account created successfully",
     "account": {
         "id": 1,
-        "account_number": "1234567890",
+        "account_number": "3812345678901234",
         "type": "savings",
         "balance": 100000.0,
         "minimum_balance": 100000.0
@@ -198,7 +202,7 @@ Response (200 OK):
     "accounts": [
         {
             "id": 1,
-            "account_number": "1234567890",
+            "account_number": "3812345678901234",
             "type": "savings",
             "balance": 100000.0,
             "minimum_balance": 100000.0
