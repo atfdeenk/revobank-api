@@ -327,23 +327,26 @@ For detailed flow diagrams, see the [docs/diagrams](docs/diagrams) directory.
 
 ### Account Model
 - Relationships:
-  - `transactions`: Outgoing transactions
-  - `received_transactions`: Incoming transactions
+  - `transactions`: Outgoing transactions (foreign_key='Transaction.account_id')
+  - `received_transactions`: Incoming transactions (foreign_key='Transaction.recipient_account_id')
 - Key fields:
-  - `account_number`
-  - `type` (checking/savings)
-  - `balance`
-  - `minimum_balance`
+  - `account_number` (16 digits with type-specific prefix)
+  - `type` (savings/checking/business/student)
+  - `balance` (current balance)
+  - `minimum_balance` (type-specific requirement)
+  - `status` (active/inactive/closed)
 
 ### Transaction Model
 - Relationships:
-  - `source_account`: Source account
+  - `source_account`: Source account (required)
   - `recipient_account`: Recipient account (for transfers)
 - Key fields:
-  - `reference_number`
-  - `amount`
-  - `type`
-  - `status`
+  - `reference_number` (TRX{YYYYMMDD}{8_random_chars})
+  - `amount` (transaction amount)
+  - `type` (deposit/withdraw/transfer)
+  - `status` (completed/pending/failed)
+  - `description` (transaction details)
+  - `timestamp` (UTC timestamp)
 
 ## Contributing
 
