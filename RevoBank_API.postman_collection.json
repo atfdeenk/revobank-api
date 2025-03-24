@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "b8f3e5a1-4b2d-4b3e-8f3e-5a14b2d4b3e8",
 		"name": "RevoBank API",
+		"description": "Updated with timestamp fields in responses",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -28,8 +29,47 @@
 							"host": ["localhost"],
 							"port": "8000",
 							"path": ["users"]
+						},
+						"description": "Create a new user account"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"password123\",\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\"\n}"
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"message": "User created successfully",
+								"user": {
+									"id": 1,
+									"username": "testuser",
+									"name": "Test User",
+									"email": "test@example.com",
+									"created_at": "2025-03-24T15:56:47+00:00",
+									"updated_at": "2025-03-24T15:56:47+00:00"
+								}
+							}
 						}
-					}
+					]
 				},
 				{
 					"name": "Login",
@@ -74,7 +114,45 @@
 							"port": "8000",
 							"path": ["users", "login"]
 						}
-					}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"password123\"\n}"
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+								"user": {
+									"id": 1,
+									"username": "testuser",
+									"name": "Test User",
+									"email": "test@example.com",
+									"created_at": "2025-03-24T15:56:47+00:00",
+									"updated_at": "2025-03-24T15:56:47+00:00"
+								}
+							}
+						}
+					]
 				},
 				{
 					"name": "Get Profile",
@@ -92,54 +170,46 @@
 							"host": ["localhost"],
 							"port": "8000",
 							"path": ["users", "me"]
-						}
-					}
-				},
-				{
-					"name": "Update Profile",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Updated Name\",\n    \"email\": \"newemail@example.com\"\n}"
 						},
-						"url": {
-							"raw": "http://localhost:8000/users/me",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["users", "me"]
+						"description": "Get user profile with timestamps"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"id": 1,
+								"username": "testuser",
+								"name": "Test User",
+								"email": "test@example.com",
+								"created_at": "2025-03-24T15:56:47+00:00",
+								"updated_at": "2025-03-24T15:56:47+00:00"
+							}
 						}
-					}
+					]
 				}
 			]
 		},
 		{
 			"name": "Account Management",
 			"item": [
-				{
-					"name": "Get Account Types",
-					"request": {
-						"method": "GET",
-						"url": {
-							"raw": "http://localhost:8000/accounts/types",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["accounts", "types"]
-						}
-					}
-				},
 				{
 					"name": "Create Account",
 					"request": {
@@ -164,8 +234,55 @@
 							"host": ["localhost"],
 							"port": "8000",
 							"path": ["accounts"]
+						},
+						"description": "Create account with initial deposit. Response includes timestamps."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"account_type\": \"savings\",\n    \"initial_deposit\": 100000.0\n}"
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"message": "Account created successfully",
+								"account": {
+									"id": 1,
+									"account_number": "3812345678901234",
+									"account_type": "savings",
+									"balance": 100000.0,
+									"currency": "IDR",
+									"status": "active",
+									"created_at": "2025-03-24T15:56:47+00:00",
+									"updated_at": "2025-03-24T15:56:47+00:00",
+									"minimum_balance": 100000.0,
+									"description": "Basic savings account with standard interest rate"
+								}
+							}
 						}
-					}
+					]
 				},
 				{
 					"name": "Get All Accounts",
@@ -183,27 +300,46 @@
 							"host": ["localhost"],
 							"port": "8000",
 							"path": ["accounts"]
-						}
-					}
-				},
-				{
-					"name": "Get Single Account",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
+						},
+						"description": "Get all accounts with timestamps"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"accounts": [
+									{
+										"id": 1,
+										"account_number": "3812345678901234",
+										"account_type": "savings",
+										"balance": 100000.0,
+										"currency": "IDR",
+										"status": "active",
+										"created_at": "2025-03-24T15:56:47+00:00",
+										"updated_at": "2025-03-24T15:56:47+00:00"
+									}
+								]
 							}
-						],
-						"url": {
-							"raw": "http://localhost:8000/accounts/1",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["accounts", "1"]
 						}
-					}
+					]
 				}
 			]
 		},
@@ -226,190 +362,64 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"account_id\": 1,\n    \"amount\": 100000.0,\n    \"description\": \"Initial deposit\"\n}"
+							"raw": "{\n    \"amount\": 50000.0,\n    \"description\": \"Deposit via ATM\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8000/transactions/deposit",
+							"raw": "http://localhost:8000/accounts/{{accountId}}/deposit",
 							"protocol": "http",
 							"host": ["localhost"],
 							"port": "8000",
-							"path": ["transactions", "deposit"]
-						}
-					}
-				},
-				{
-					"name": "Withdraw Money",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"account_id\": 1,\n    \"amount\": 50000.0,\n    \"description\": \"ATM withdrawal\"\n}"
+							"path": ["accounts", "{{accountId}}", "deposit"]
 						},
-						"url": {
-							"raw": "http://localhost:8000/transactions/withdraw",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["transactions", "withdraw"]
-						}
-					}
-				},
-				{
-					"name": "Transfer Money",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"from_account_id\": 1,\n    \"to_account_id\": 2,\n    \"amount\": 25000.0,\n    \"description\": \"Monthly rent\"\n}"
-						},
-						"url": {
-							"raw": "http://localhost:8000/transactions/transfer",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["transactions", "transfer"]
-						}
-					}
-				},
-				{
-					"name": "Get All Transactions",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "http://localhost:8000/transactions?account_id=1&type=transfer&start_date=2025-03-01&end_date=2025-03-14",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["transactions"],
-							"query": [
-								{
-									"key": "account_id",
-									"value": "1",
-									"description": "Filter by account ID"
-								},
-								{
-									"key": "type",
-									"value": "transfer",
-									"description": "Filter by transaction type (deposit, withdraw, transfer)"
-								},
-								{
-									"key": "start_date",
-									"value": "2025-03-01",
-									"description": "Start date in ISO format"
-								},
-								{
-									"key": "end_date",
-									"value": "2025-03-14",
-									"description": "End date in ISO format"
+						"description": "Deposit money into an account"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"amount\": 50000.0,\n    \"description\": \"Deposit via ATM\"\n}"
 								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Get Single Transaction",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "http://localhost:8000/transactions/1",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["transactions", "1"]
-						}
-					}
-				},
-				{
-					"name": "Get All Transactions",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "http://localhost:8000/transactions",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["transactions"],
-							"query": [
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
 								{
-									"key": "account_id",
-									"value": "1",
-									"disabled": true
-								},
-								{
-									"key": "type",
-									"value": "deposit",
-									"disabled": true
-								},
-								{
-									"key": "from_date",
-									"value": "2025-03-01",
-									"disabled": true
-								},
-								{
-									"key": "to_date",
-									"value": "2025-03-14",
-									"disabled": true
+									"key": "Content-Type",
+									"value": "application/json"
 								}
-							]
-						}
-					}
-				},
-				{
-					"name": "Get Single Transaction",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
+							],
+							"body": {
+								"message": "Deposit successful",
+								"transaction": {
+									"id": 1,
+									"amount": 50000.0,
+									"type": "deposit",
+									"timestamp": "2025-03-24T15:56:47+00:00",
+									"description": "Deposit via ATM",
+									"account_id": 1
+								},
+								"account": {
+									"id": 1,
+									"balance": 150000.0,
+									"updated_at": "2025-03-24T15:56:47+00:00"
+								}
 							}
-						],
-						"url": {
-							"raw": "http://localhost:8000/transactions/1",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["transactions", "1"]
 						}
-					}
+					]
 				}
 			]
 		}
@@ -417,18 +427,19 @@
 	"variable": [
 		{
 			"key": "token",
-			"value": "",
-			"type": "string"
+			"value": ""
 		},
 		{
 			"key": "userId",
-			"value": "",
-			"type": "string"
+			"value": ""
 		},
 		{
 			"key": "username",
-			"value": "",
-			"type": "string"
+			"value": ""
+		},
+		{
+			"key": "accountId",
+			"value": ""
 		}
 	]
 }
