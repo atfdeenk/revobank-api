@@ -1,4 +1,5 @@
-from flask import Flask
+import os
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from config import Config
@@ -15,9 +16,17 @@ def create_app(config_name='default'):
         app.config['JWT_SECRET_KEY'] = 'test-key'
     else:
         app.config.from_object(Config)
+        # Override with environment variables if they exist
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', app.config['SQLALCHEMY_DATABASE_URI'])
+        app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', app.config['JWT_SECRET_KEY'])
     
     db.init_app(app)
     jwt.init_app(app)
+    
+    # Health check endpoint
+    @app.route('/health')
+    def health_check():
+        return jsonify({'status': 'healthy', 'message': 'Service is running'}), 200
     
     from app.routes import user_bp, account_bp, transaction_bp
     app.register_blueprint(user_bp, url_prefix='/users')
