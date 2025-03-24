@@ -70,6 +70,11 @@ RevoBank API is designed to handle core banking operations with a focus on:
 
 ### Data Management
 
+- Timestamp tracking for all models:
+  - User: `created_at`, `updated_at`
+  - Account: `created_at`, `updated_at`
+  - Transaction: `timestamp`
+
 - Bidirectional account-transaction relationships:
   - Account → Source transactions (outgoing via foreign_key='Transaction.account_id')
   - Account → Received transactions (incoming via foreign_key='Transaction.recipient_account_id')
@@ -95,6 +100,7 @@ RevoBank API is designed to handle core banking operations with a focus on:
 - **Framework**: Flask 3.0.2
 - **Database**: SQLAlchemy 2.0.28
 - **Authentication**: Flask-JWT-Extended 4.6.0
+- **Migration**: Flask-Migrate 4.1.0
 - **Testing**: pytest 7.4.4
 - **Documentation**: PlantUML activity diagrams
 
@@ -125,7 +131,12 @@ RevoBank API is designed to handle core banking operations with a focus on:
    uv pip install -r requirements.txt
    ```
 
-4. Run the application:
+4. Initialize and apply database migrations:
+   ```bash
+   flask db upgrade
+   ```
+
+5. Run the application:
    ```bash
    python run.py
    ```

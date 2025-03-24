@@ -1,11 +1,11 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, UTC
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float, nullable=False)
     type = db.Column(db.String(20), nullable=False)  # deposit, withdraw, transfer
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     recipient_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=True)  # For transfers
     description = db.Column(db.String(200))

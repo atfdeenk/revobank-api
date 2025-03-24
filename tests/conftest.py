@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, UTC
 from app import create_app, db
 from app.models.user import User
 from app.models.account import Account
@@ -53,7 +53,7 @@ def init_database(app):
         db.session.commit()
 
         # Create sample transactions with proper relationships
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         
         # Initial deposit to savings account
         deposit = Transaction(

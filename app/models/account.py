@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, UTC
 import random
 
 class Account(db.Model):
@@ -9,7 +9,8 @@ class Account(db.Model):
     balance = db.Column(db.Float, default=0.0)
     currency = db.Column(db.String(3), default='IDR')
     status = db.Column(db.String(10), default='active')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     # Outgoing transactions (where this account is the source)
     transactions = db.relationship('Transaction',

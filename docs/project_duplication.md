@@ -54,6 +54,27 @@ uv venv
 source .venv/bin/activate
 ```
 
+### 4. Database Migration
+
+Initialize and apply database migrations:
+```bash
+# Initialize migrations directory (first time only)
+flask db init
+
+# Apply existing migrations
+flask db upgrade
+```
+
+To create new migrations:
+```bash
+# After making model changes
+flask db migrate -m "Description of changes"
+
+# Apply the new migration
+flask db upgrade
+```
+```
+
 ### 4. Deploy to Production
 
 1. Create a new GitHub repository

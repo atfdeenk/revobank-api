@@ -2,10 +2,12 @@ import os
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 from config import Config
 
 db = SQLAlchemy()
 jwt = JWTManager()
+migrate = Migrate()
 
 def create_app(config_name='default'):
     app = Flask(__name__)
@@ -22,6 +24,7 @@ def create_app(config_name='default'):
     
     db.init_app(app)
     jwt.init_app(app)
+    migrate.init_app(app, db)
     
     # Health check endpoint
     @app.route('/health')

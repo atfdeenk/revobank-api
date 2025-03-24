@@ -52,6 +52,16 @@ Authorization: Bearer <token>
 
 **Test Cases:**
 - ✅ Success (200 OK with user details)
+  ```json
+  {
+    "id": 1,
+    "username": "testuser",
+    "name": "Test User",
+    "email": "test@example.com",
+    "created_at": "2025-03-24T15:41:16+00:00",
+    "updated_at": "2025-03-24T15:41:16+00:00"
+  }
+  ```
 - ❌ No token (401 Unauthorized)
 - ❌ Invalid token (401 Unauthorized)
 - ❌ Expired token (401 Unauthorized)
@@ -135,7 +145,8 @@ Content-Type: application/json
       "balance": 100000.0,
       "currency": "IDR",
       "status": "active",
-      "created_at": "2025-03-14T02:56:33+07:00",
+      "created_at": "2025-03-24T15:41:16+00:00",
+      "updated_at": "2025-03-24T15:41:16+00:00",
       "minimum_balance": 100000.0,
       "description": "Basic savings account with standard interest rate"
     }
