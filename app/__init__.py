@@ -3,6 +3,7 @@ from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from sqlalchemy.exc import SQLAlchemyError
 from config import Config
 
 db = SQLAlchemy()
@@ -35,7 +36,7 @@ def create_app(config_name='default'):
         raise
     
     # Error handlers
-    @app.errorhandler(SQLAlchemy.SQLAlchemyError)
+    @app.errorhandler(SQLAlchemyError)
     def handle_db_error(error):
         app.logger.error(f'Database error occurred: {str(error)}')
         return jsonify({'error': 'A database error occurred'}), 500
