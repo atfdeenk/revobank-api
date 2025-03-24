@@ -1,12 +1,15 @@
 # Project Duplication Guide
 
-This document outlines the process of duplicating the RevoBank API project to a new location while maintaining all functionality, including the transaction system and account relationships.
+This document outlines the process of duplicating and deploying the RevoBank API project to a new location while maintaining all functionality, including the transaction system and account relationships.
 
 ## Prerequisites
 
-- Python 3.11
+- Python 3.11.11
 - uv package manager
+- Docker (for containerization)
 - rsync (for Unix-like systems)
+- GitHub account
+- Koyeb account (for deployment)
 - Source project: `revobank-api`
 - Target directory: `milestone-3-atfdeenk`
 
@@ -47,8 +50,53 @@ Files and directories copied:
 Create and activate a new virtual environment using uv:
 ```bash
 cd /path/to/milestone-3-atfdeenk
-uv venv -p 3.11
+uv venv
 source .venv/bin/activate
+```
+
+### 4. Deploy to Production
+
+1. Create a new GitHub repository
+
+2. Initialize git and push to GitHub:
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/yourusername/your-repo.git
+git push -u origin main
+```
+
+3. Deploy to Koyeb:
+   - Log in to Koyeb dashboard
+   - Create new app
+   - Connect your GitHub repository
+   - Choose Docker deployment method
+   - Configure environment variables:
+     ```
+     JWT_SECRET_KEY=your-secure-key
+     PORT=8000
+     DATABASE_URL=your-database-url (optional)
+     ```
+   - Deploy the application
+
+4. Verify deployment:
+   - Check the health endpoint: `https://your-app-url/health`
+   - Test API endpoints using Postman or similar tool
+
+### 5. Testing Docker Locally
+
+Before deploying, you can test the Docker setup locally:
+```bash
+# Build the image
+docker build -t your-app-name .
+
+# Run the container
+docker run -p 8000:8000 your-app-name
+```
+
+Verify the application is running by accessing:
+- http://localhost:8000/health
 ```
 
 ### 4. Install Dependencies

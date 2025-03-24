@@ -2,6 +2,18 @@
 
 A secure and robust RESTful banking API that enables account management, transactions, and user operations with comprehensive security features. Built with Flask and SQLAlchemy, it provides a reliable platform for banking operations with proper transaction management and data integrity.
 
+## Production Deployment
+
+The API is deployed and running at:
+```
+https://gothic-vallie-revobank-api-6e0a31f1.koyeb.app
+```
+
+Health Check:
+```
+https://gothic-vallie-revobank-api-6e0a31f1.koyeb.app/health
+```
+
 ## Overview
 
 RevoBank API is designed to handle core banking operations with a focus on:
@@ -90,15 +102,60 @@ RevoBank API is designed to handle core banking operations with a focus on:
 
 ### Prerequisites
 
-- Python 3.11
+- Python 3.11.11
 - Virtual environment tool (uv recommended)
+- Docker (for containerization)
 
-### Installation
+### Local Development
 
 1. Clone the repository:
-
    ```bash
    git clone https://github.com/atfdeenk/revobank-api.git
+   cd revobank-api
+   ```
+
+2. Create and activate virtual environment:
+   ```bash
+   uv venv
+   source .venv/bin/activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   uv pip install -r requirements.txt
+   ```
+
+4. Run the application:
+   ```bash
+   python run.py
+   ```
+
+### Docker Deployment
+
+1. Build the Docker image:
+   ```bash
+   docker build -t revobank-api .
+   ```
+
+2. Run the container:
+   ```bash
+   docker run -p 8000:8000 revobank-api
+   ```
+
+### Production Deployment (Koyeb)
+
+1. Push your code to GitHub
+
+2. In Koyeb dashboard:
+   - Create new app
+   - Select your GitHub repository
+   - Choose Docker deployment method
+   - Set environment variables:
+     - `JWT_SECRET_KEY`: Your secure JWT key
+     - `DATABASE_URL`: Your database URL (optional)
+     - `PORT`: 8000
+
+3. The app will be deployed and accessible at your Koyeb URL
    cd revobank-api
    ```
 
