@@ -22,10 +22,24 @@ def create_app(config_name='default'):
         app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', app.config['SQLALCHEMY_DATABASE_URI'])
         app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', app.config['JWT_SECRET_KEY'])
     
-    db.init_app(app)
-    jwt.init_app(app)
-    migrate.init_app(app, db)
+    try:
+        db.init_app(app)
+        jwt.init_app(app)
+        migrate.init_app(app, db)
+        
+        # Test database connection
+        with app.app_context():
+            db.engine.connect()
+    except Exception as e:
+        app.logger.error(f'Failed to initialize database: {str(e)}')
+        raise
     
+    # Error handlers
+    @app.errorhandler(SQLAlchemy.SQLAlchemyError)
+    def handle_db_error(error):
+        app.logger.error(f'Database error occurred: {str(error)}')
+        return jsonify({'error': 'A database error occurred'}), 500
+
     # Health check endpoint
     @app.route('/health')
     def health_check():
