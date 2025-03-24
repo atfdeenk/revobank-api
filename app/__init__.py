@@ -25,6 +25,10 @@ def create_app(config_name='default'):
     app.register_blueprint(transaction_bp, url_prefix='/transactions')
     
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            # If tables already exist, continue
+            app.logger.info(f'Database initialization: {str(e)}')
     
     return app
