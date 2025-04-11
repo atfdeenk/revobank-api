@@ -5,6 +5,38 @@
 http://localhost:8000
 ```
 
+## Rate Limits
+
+| Endpoint | Rate Limit |
+|----------|-------------|
+| User Registration | 20 per minute |
+| Login | 30 per minute, 300 per hour |
+| Get Profile | 60 per minute |
+| Update Profile | 40 per minute |
+| Account Operations | 30 per minute |
+| Transactions | 20 per minute |
+
+## Load Testing
+
+Load testing is performed using Locust. To run the tests:
+
+```bash
+locust -f tests/locust/locustfile.py --host=http://127.0.0.1:8000
+```
+
+The load tests cover:
+- User registration and login
+- Account creation and management
+- Profile operations
+- Balance checks
+- Transaction operations
+- Token refresh
+
+Recommended test parameters:
+- Number of users: 20-30
+- Spawn rate: 1-2 users/second
+- Run time: 5-10 minutes
+
 ## 1. User Management Tests
 
 ### 1.1 Create User
@@ -235,78 +267,45 @@ Content-Type: application/json
   {
     "message": "Deposit successful",
     "transaction": {
-      "id": 1,
-      "reference_number": "TRX20250314ABC12345",
-      "type": "deposit",
+      "id": "t123",
+      "type": "transfer",
       "amount": 100000.0,
-      "timestamp": "2025-03-14T03:35:39+07:00",
-      "description": "Initial deposit",
+      "from_account": {
+        "id": 1,
+        "balance": 900000.0
+      },
+      "to_account": {
+        "id": 2,
+        "balance": 1100000.0
+      },
+      "description": "Transaction description",
       "status": "completed",
-      "account_id": 1
+      "created_at": "2025-04-11T16:08:51+00:00"
     }
   }
   ```
-- ❌ Invalid amount (400 Bad Request)
-- ❌ Negative amount (400 Bad Request)
-- ❌ Account not active (400 Bad Request)
-- ❌ Account belongs to another user (404 Not Found)
-
-### 3.2 Withdraw Money
-```http
-POST /transactions/withdraw
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-    "account_id": 1,
-    "amount": 50000.0,
-    "description": "ATM withdrawal"
-}
-```
-
-**Test Cases:**
-- ✅ Success (201 Created)
 - ❌ Insufficient balance (400 Bad Request)
   ```json
   {
     "error": "Insufficient funds",
-    "current_balance": 100000.0,
-    "minimum_balance": 100000.0
+    "required": 50000.0,
+    "available": 10000.0
   }
   ```
-- ❌ Below minimum balance (400 Bad Request)
+- ❌ Invalid amount (400 Bad Request)
+- ❌ Invalid transaction type (400 Bad Request)
+- ❌ Missing required fields (400 Bad Request)
+- ❌ Account not found (404 Not Found)
 - ❌ Account not active (400 Bad Request)
-- ❌ Account belongs to another user (404 Not Found)
+- ❌ Account belongs to another user (403 Forbidden)
 
-### 3.3 Transfer Money
-```http
-POST /transactions/transfer
-Authorization: Bearer <token>
-Content-Type: application/json
+Notes:
+- All transactions use ACID guarantees
+- Row-level locking prevents race conditions
+- Automatic rollback on failure
+- Transaction history is maintained
 
-{
-    "from_account_id": 1,
-    "to_account_id": 2,
-    "amount": 25000.0,
-    "description": "Monthly rent"
-}
-```
-
-**Test Cases:**
-- ✅ Success (201 Created)
-  ```json
-  {
-    "message": "Transfer successful",
-    "transaction": {
-      "id": 3,
-      "reference_number": "TRX20250314XYZ67890",
-      "type": "transfer",
-      "amount": 25000.0,
-      "timestamp": "2025-03-14T03:35:39+07:00",
-      "description": "Monthly rent",
-      "status": "completed",
-      "account_id": 1,
-      "recipient_account_id": 2
+### 3.2 Get All Transactions
     }
   }
   ```
@@ -321,23 +320,25 @@ Content-Type: application/json
 GET /transactions
 Authorization: Bearer <token>
 Query Parameters:
-    ?account_id=1              # Optional: Filter by account
+    ?page=1                    # Optional: Page number (default: 1)
+    &limit=20                  # Optional: Items per page (default: 20, max: 100)
+    &account_id=1              # Optional: Filter by account
     &type=transfer             # Optional: deposit, withdraw, transfer
     &start_date=2025-03-01     # Optional: ISO format
     &end_date=2025-03-14       # Optional: ISO format
 ```
 
 **Test Cases:**
-- ✅ Success (200 OK with list of transactions)
+- ✅ Success (200 OK with paginated list of transactions)
   ```json
   {
     "transactions": [
       {
-        "id": 3,
-        "reference_number": "TRX20250314XYZ67890",
+        "id": 1,
+        "reference_number": "TRX20250314ABC12345",
         "type": "transfer",
-        "amount": 25000.0,
-        "timestamp": "2025-03-14T03:35:39+07:00",
+        "amount": 100000.0,
+        "timestamp": "2025-03-14T03:30:21+07:00",
         "description": "Monthly rent",
         "status": "completed",
         "account_id": 1,
@@ -353,16 +354,29 @@ Query Parameters:
         "status": "completed",
         "account_id": 1
       }
-    ]
+    ],
+    "pagination": {
+      "total_items": 45,
+      "total_pages": 3,
+      "current_page": 1,
+      "limit": 20,
+      "has_next": true,
+      "has_prev": false,
+      "next_page": 2,
+      "prev_page": null
+    }
   }
   ```
 - ✅ Filter by account
 - ✅ Filter by transaction type
 - ✅ Filter by date range
+- ✅ Pagination (page and limit)
 - ✅ No transactions (200 OK with empty list)
 - ❌ Invalid account ID (404 Not Found)
 - ❌ Invalid transaction type (400 Bad Request)
 - ❌ Invalid date format (400 Bad Request)
+- ❌ Invalid page number (400 Bad Request)
+- ❌ Invalid limit (400 Bad Request)
 
 ### 3.5 Get Single Transaction
 ```http

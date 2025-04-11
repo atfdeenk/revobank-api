@@ -4,6 +4,7 @@ from app import create_app, db
 from app.models.user import User
 from app.models.account import Account
 from app.models.transaction import Transaction
+from app.models.role import Role
 
 @pytest.fixture
 def app():
@@ -23,14 +24,48 @@ def init_database(app):
     with app.app_context():
         db.create_all()
         
-        # Create test user
-        user = User(
+        # Create roles
+        customer_role = Role(
+            name=Role.CUSTOMER,
+            permissions=Role.DEFAULT_PERMISSIONS[Role.CUSTOMER]
+        )
+        admin_role = Role(
+            name=Role.ADMIN,
+            permissions=Role.DEFAULT_PERMISSIONS[Role.ADMIN]
+        )
+        teller_role = Role(
+            name=Role.TELLER,
+            permissions=Role.DEFAULT_PERMISSIONS[Role.TELLER]
+        )
+        db.session.add_all([customer_role, admin_role, teller_role])
+        db.session.commit()
+
+        # Create test users
+        customer = User(
             username='testuser',
             name='Test User',
-            email='test@example.com'
+            email='test@example.com',
+            role_id=customer_role.id
         )
-        user.set_password('password123')
-        db.session.add(user)
+        customer.set_password('password123')
+        
+        admin = User(
+            username='admin',
+            name='Admin User',
+            email='admin@example.com',
+            role_id=admin_role.id
+        )
+        admin.set_password('admin123')
+        
+        teller = User(
+            username='teller',
+            name='Teller User',
+            email='teller@example.com',
+            role_id=teller_role.id
+        )
+        teller.set_password('teller123')
+        
+        db.session.add_all([customer, admin, teller])
         db.session.commit()
 
         # Create test accounts with different types
@@ -38,14 +73,14 @@ def init_database(app):
             account_type='savings',
             account_number='38' + '0' * 14,  # Savings prefix
             balance=1000000.0,  # Well above 100k minimum
-            user_id=user.id,
+            user_id=customer.id,
             status='active'
         )
         checking_account = Account(
             account_type='checking',
             account_number='39' + '0' * 14,  # Checking prefix
             balance=2000000.0,  # Well above 500k minimum
-            user_id=user.id,
+            user_id=customer.id,
             status='active'
         )
         db.session.add(savings_account)

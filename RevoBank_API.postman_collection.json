@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "b8f3e5a1-4b2d-4b3e-8f3e-5a14b2d4b3e8",
 		"name": "RevoBank API",
-		"description": "Updated with timestamp fields in responses",
+		"description": "A secure banking API with Role-Based Access Control (RBAC) and high-value transaction approval workflow.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -11,6 +11,7 @@
 			"item": [
 				{
 					"name": "Create User",
+                    "description": "Create a new user account with validation:\n- Username: At least 3 characters\n- Email: Valid format and unique\n- Password: Required",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -72,18 +73,16 @@
 					]
 				},
 				{
-					"name": "Login",
+					"name": "Login as Customer",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// Check if login was successful",
 									"if (pm.response.code === 200) {",
 									"    var jsonData = pm.response.json();",
-									"    // Set the token as a collection variable",
+									"    pm.collectionVariables.set(\"customerToken\", jsonData.access_token);",
 									"    pm.collectionVariables.set(\"token\", jsonData.token);",
-									"    // Set user details for future reference",
 									"    pm.collectionVariables.set(\"userId\", jsonData.user.id);",
 									"    pm.collectionVariables.set(\"username\", jsonData.user.username);",
 									"    console.log(\"Token and user details saved!\");",
@@ -108,7 +107,7 @@
 							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"password123\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8000/users/login",
+							"raw": "{{baseUrl}}/users/login",
 							"protocol": "http",
 							"host": ["localhost"],
 							"port": "8000",
@@ -347,6 +346,127 @@
 			"name": "Transaction Management",
 			"item": [
 				{
+					"name": "Get All Transactions",
+                    "description": "Get all transactions with optimized filtering:\n- Uses database indexes for fast queries\n- Eager loading of account data\n- Efficient pagination\n\nFilters (all indexed):\n- account_id: Must be integer\n- type: One of [deposit, withdraw, transfer]\n- status: One of [completed, pending_approval, failed]\n- start_date/end_date: ISO format (YYYY-MM-DD)\n\nPagination:\n- page: Integer > 0 (default: 1)\n- limit: Integer 1-100 (default: 20)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8000/transactions?page=1&limit=20",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["transactions"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Items per page (default: 20, max: 100)"
+								},
+								{
+									"key": "account_id",
+									"value": "{{accountId}}",
+									"description": "Optional: Filter by account ID",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "deposit",
+									"description": "Optional: Filter by transaction type (deposit, withdraw, transfer)",
+									"disabled": true
+								},
+								{
+									"key": "start_date",
+									"value": "2025-03-01",
+									"description": "Optional: Filter by start date (ISO format)",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "2025-03-31",
+									"description": "Optional: Filter by end date (ISO format)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of transactions with optional filters"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "http://localhost:8000/transactions?page=1&limit=20",
+									"protocol": "http",
+									"host": ["localhost"],
+									"port": "8000",
+									"path": ["transactions"],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": {
+								"transactions": [
+									{
+										"id": 1,
+										"reference_number": "TRX202503140001",
+										"type": "deposit",
+										"amount": 50000.0,
+										"description": "Initial deposit",
+										"account_id": 1,
+										"recipient_account_id": null,
+										"timestamp": "2025-03-14T04:30:00Z"
+									}
+								],
+								"pagination": {
+									"total_items": 45,
+									"total_pages": 3,
+									"current_page": 1,
+									"limit": 20,
+									"has_next": true,
+									"has_prev": false,
+									"next_page": 2,
+									"prev_page": null
+								}
+							}
+						}
+					]
+				},
+				{
 					"name": "Deposit Money",
 					"request": {
 						"method": "POST",
@@ -422,24 +542,208 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "Transaction Management",
+			"item": [
+				{
+					"name": "Create Deposit",
+					"description": "Create a deposit with ACID guarantees:\n- Amount must be positive\n- Uses row-level locking\n- Automatic rollback on failure\n- Balance constraints enforced",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"account_id\": 1,\n    \"amount\": 50000.0,\n    \"description\": \"Sample deposit\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transactions/deposit",
+							"host": ["{{baseUrl}}"],
+							"path": ["transactions", "deposit"]
+						}
+					}
+				},
+				{
+					"name": "Create Withdrawal",
+					"description": "Create a withdrawal with ACID guarantees:\n- Amount must be positive\n- Uses row-level locking\n- Automatic rollback on failure\n- Balance constraints enforced",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"account_id\": 1,\n    \"amount\": 5000.0,\n    \"description\": \"Sample withdrawal\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transactions/withdraw",
+							"host": ["{{baseUrl}}"],
+							"path": ["transactions", "withdraw"]
+						}
+					}
+				},
+				{
+					"name": "Create Transaction",
+					"description": "Create a transaction with ACID guarantees:\n- Supports transfer, deposit, and withdraw\n- Amount must be positive\n- Uses row-level locking\n- Automatic rollback on failure\n- Balance constraints enforced\n- Rate limited to 20 per minute",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"from_account_id\": 1,\n    \"to_account_id\": 2,\n    \"amount\": 5000.0,\n    \"transaction_type\": \"transfer\",\n    \"description\": \"Sample transfer\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transactions",
+							"host": ["{{baseUrl}}"],
+							"path": ["transactions"]
+						}
+					}
+				},
+				{
+					"name": "Create High-Value Transfer",
+					"description": "Create a transfer above 50M IDR with ACID guarantees:\n- Amount must be positive\n- Uses row-level locking\n- Automatic rollback on failure\n- Balance constraints enforced\n- Requires admin/teller approval\n- Returns 202 Accepted if pending approval",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 202) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"transactionId\", jsonData.transaction.id);",
+									"    console.log(\"Transaction ID saved!\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customerToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"from_account_id\": 1,\n    \"to_account_id\": 2,\n    \"amount\": 60000000.0,\n    \"transaction_type\": \"transfer\",\n    \"description\": \"High value transfer\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/transactions",
+							"host": ["{{baseUrl}}"],
+							"path": ["transactions"]
+						}
+					}
+				},
+				{
+					"name": "View All Transactions (Admin)",
+					"description": "Get paginated list of all transactions with optional filters. Includes:\n- Transaction type filter\n- Date range filter\n- Account filter\n- Status filter\n- Optimized query performance with indexes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/transactions/admin/all?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["transactions", "admin", "all"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Approve Transaction (Admin)",
+					"description": "Approve a high-value transaction with ACID guarantees:\n- Uses row-level locking\n- Automatic rollback on failure\n- Balance constraints enforced\n- Only accessible by admin/teller",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/transactions/admin/approve/{{transactionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["transactions", "admin", "approve", "{{transactionId}}"]
+						}
+					}
+				}
+			]
 		}
 	],
 	"variable": [
 		{
-			"key": "token",
-			"value": ""
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
 		},
 		{
-			"key": "userId",
-			"value": ""
+			"key": "customerToken",
+			"value": "",
+			"type": "string"
 		},
 		{
-			"key": "username",
-			"value": ""
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "tellerToken",
+			"value": "",
+			"type": "string"
 		},
 		{
 			"key": "accountId",
-			"value": ""
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "transactionId",
+			"value": "",
+			"type": "string"
 		}
 	]
 }

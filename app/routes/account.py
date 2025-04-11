@@ -30,18 +30,25 @@ def get_accounts():
     status = request.args.get('status', 'active')
     
     # Build query
-    query = Account.query.filter_by(user_id=user_id)
+    # Build base query with user_id filter
+    query = Account.query.filter(Account.user_id == user_id)
     
+    # Validate and apply account type filter
     if account_type:
         if account_type not in Account.ACCOUNT_TYPES:
             return jsonify({
                 'error': 'Invalid account type',
                 'available_types': list(Account.ACCOUNT_TYPES.keys())
             }), 400
-        query = query.filter_by(account_type=account_type)
+        query = query.filter(Account.account_type == account_type)
     
+    # Validate and apply status filter
     if status:
-        query = query.filter_by(status=status)
+        if status not in ['active', 'inactive', 'frozen']:
+            return jsonify({
+                'error': 'Invalid status. Must be one of: active, inactive, frozen'
+            }), 400
+        query = query.filter(Account.status == status)
     
     accounts = query.all()
     return jsonify({

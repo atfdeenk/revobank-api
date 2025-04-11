@@ -12,7 +12,29 @@ class Transaction(db.Model):
     reference_number = db.Column(db.String(20), unique=True, nullable=False)
     status = db.Column(db.String(20), default='completed')  # completed, pending, failed
 
+    # Valid transaction types
     TRANSACTION_TYPES = ['deposit', 'withdraw', 'transfer']
+    
+    # Valid transaction statuses
+    STATUS_COMPLETED = 'completed'
+    STATUS_PENDING_APPROVAL = 'pending_approval'
+    STATUS_FAILED = 'failed'
+    STATUS_CANCELLED = 'cancelled'
+    
+    STATUSES = [
+        STATUS_COMPLETED,
+        STATUS_PENDING_APPROVAL,
+        STATUS_FAILED,
+        STATUS_CANCELLED
+    ]
+    
+    # High-value transaction threshold
+    HIGH_VALUE_THRESHOLD = 50000000  # 50 million
+    
+    @staticmethod
+    def requires_approval(amount):
+        """Check if transaction requires approval based on amount"""
+        return amount > Transaction.HIGH_VALUE_THRESHOLD
     
     @staticmethod
     def generate_reference_number():
